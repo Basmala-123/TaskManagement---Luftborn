@@ -1,59 +1,49 @@
-# TaskManagement
+# Taskflow
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.7.
+An Angular task-management dashboard built from the Senior Front End assignment. It uses standalone components, a lazily loaded task page, signal-based state, reactive forms, and responsive styling.
 
-## Development server
-
-To start a local development server, run:
+## Getting started
 
 ```bash
-ng serve
+npm install
+npm start
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Open [http://localhost:4200](http://localhost:4200).
 
-## Code scaffolding
+## Mock data
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+The assignment data and generator are in `public/data/`. The app loads `tasks.json` and `statistics.json` through Angular's HTTP client. To refresh task dates and regenerate both JSON files:
 
 ```bash
-ng generate component component-name
+node public/data/generate-data.js
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+The data is bundled as static assets; task additions, status changes, and deletions are held in memory and reset on reload.
 
-```bash
-ng generate --help
-```
+## Features
 
-## Building
+- Dashboard statistic cards and a three-column task board
+- Task search plus status, priority, and assignee filters
+- Create tasks with validated title, description, priority, due date, and assignee
+- Move tasks between statuses, and delete them with confirmation
+- Loading, retry, and error states for task data
+- Responsive dashboard layout with keyboard-accessible labels and reduced-motion support
 
-To build the project run:
+## Scripts
 
-```bash
-ng build
-```
+| Command | Description |
+| --- | --- |
+| `npm start` | Start the Angular development server |
+| `npm run build` | Create a production build |
+| `npm test` | Run unit tests in Karma |
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Architecture
 
-## Running unit tests
+- `src/app/app.routes.ts` lazy-loads the task-management page.
+- `src/app/features/tasks/services/task.service.ts` loads static task and statistics data and exposes task state as signals.
+- `src/app/features/tasks/pages/task-manager-page/` owns dashboard state, filtering, task actions, and the reactive form.
+- `src/app/features/tasks/components/task-stats/`, `task-board/`, and `task-card/` contain reusable presentational components driven by page inputs and outputs.
+- `src/app/features/tasks/models/task.model.ts` defines the task and assignee data contracts.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Task changes are local to the current browser session. A persistent API, authentication, and drag-and-drop are not included in this mock-data implementation.

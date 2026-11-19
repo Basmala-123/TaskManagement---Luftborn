@@ -1,0 +1,14 @@
+<section class="stats-grid" aria-label="Task statistics">
+  @for (stat of statistics(); track stat.id) {
+    <article class="stat-card">
+      <div class="stat-top">
+        <span class="stat-label">
+          <span class="stat-icon" [style.color]="stat.color">{{ stat.icon }}</span>
+          {{ stat.title }}
+        </span>
+      </div>
+      <div class="stat-value">{{ stat.value }}</div>
+      <div class="stat-caption" [class]="stat.changeType">{{ stat.change }} {{ stat.changeLabel }}</div>
+    </article>
+  }
+</section>

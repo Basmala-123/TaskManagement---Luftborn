@@ -1,0 +1,21 @@
+<div class="task-board">
+  @for (status of statuses(); track status.value) {
+    <section class="task-column" [class]="status.value">
+      <div class="column-heading">
+        <h2>{{ status.label }}</h2>
+        <span class="column-count">{{ statusTasks(status.value).length }}</span>
+      </div>
+      <div class="column-cards">
+        @for (task of statusTasks(status.value); track task.id) {
+          <app-task-card
+            [task]="task"
+            (moveRequested)="requestMove(task, $event)"
+            (deleteRequested)="deleteRequested.emit($event)"
+          />
+        } @empty {
+          <div class="empty-column">No tasks here</div>
+        }
+      </div>
+    </section>
+  }
+</div>

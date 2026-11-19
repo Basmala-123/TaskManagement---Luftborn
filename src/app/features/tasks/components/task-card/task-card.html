@@ -1,0 +1,42 @@
+<article class="task-card" [class.overdue-card]="isOverdue()">
+  <div class="card-title-row">
+    <span class="priority-label" [class]="task().priority">{{ task().priority }}</span>
+    <button
+      type="button"
+      class="card-menu"
+      [attr.aria-label]="'Delete ' + task().title"
+      (click)="requestDelete()"
+    >···</button>
+  </div>
+  <h3>{{ task().title }}</h3>
+  <p class="task-description">{{ task().description }}</p>
+  <div class="task-meta">
+    <span class="due-date" [class.overdue]="isOverdue()" [class.completed]="task().status === 'done'">
+      <span>{{ isOverdue() ? '⚠' : task().status === 'done' ? '✓' : '◷' }}</span>{{ dueLabel() }}
+    </span>
+  </div>
+  @if (task().tags.length) {
+    <div class="task-category">{{ task().tags[0] }}</div>
+  }
+  <div class="card-footer">
+    <div class="assignee-chip">
+      <span class="assignee-avatar">{{ task().assignee.avatar }}</span>@{{ assigneeFirstName() }}
+    </div>
+    <div class="card-actions">
+      @if (task().status !== 'todo') {
+        <button
+          type="button"
+          [attr.aria-label]="'Move ' + task().title + ' to previous status'"
+          (click)="moveRequested.emit(-1)"
+        >‹</button>
+      }
+      @if (task().status !== 'done') {
+        <button
+          type="button"
+          [attr.aria-label]="'Move ' + task().title + ' to next status'"
+          (click)="moveRequested.emit(1)"
+        >›</button>
+      }
+    </div>
+  </div>
+</article>

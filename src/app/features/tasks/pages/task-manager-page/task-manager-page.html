@@ -1,0 +1,86 @@
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Task Manager home">
+      <span class="brand-mark">T</span>
+      <span class="brand-name">Task Manager</span>
+    </a>
+    <label class="top-search"><span>⌕</span><input type="search" placeholder="Search tasks..." [value]="search()" (input)="setSearch($any($event.target).value)" aria-label="Search tasks"></label>
+    <div class="topbar-actions">
+      <button class="notification-button" type="button" aria-label="Notifications">♟<i></i></button>
+      <div class="top-avatar" aria-label="Jordan Davis">JD</div>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <nav class="side-nav" aria-label="Main navigation">
+      <a class="nav-link active" href="#dashboard" aria-current="page"><span class="nav-icon">▥</span>Dashboard</a>
+      <a class="nav-link" href="#my-tasks"><span class="nav-icon">✓</span>Tasks</a>
+      <a class="nav-link" href="#calendar"><span class="nav-icon">▣</span>Calendar</a>
+      <a class="nav-link" href="#analytics"><span class="nav-icon">▥</span>Analytics</a>
+      <a class="nav-link" href="#team"><span class="nav-icon">♙</span>Team</a>
+      <a class="nav-link" href="#settings"><span class="nav-icon">⚙</span>Settings</a>
+    </nav>
+    <button class="sidebar-create" type="button" (click)="openForm()"><span>+</span> New Task</button>
+  </aside>
+
+  <main class="main-content">
+
+    <div class="page-content">
+      @if (notice()) {
+        <div class="notice" role="status">{{ notice() }}<button type="button" (click)="notice.set('')" aria-label="Dismiss">×</button></div>
+      }
+
+      @if (taskService.loading()) {
+        <div class="loading-state" role="status"><span class="spinner"></span>Loading your workspace…</div>
+      } @else if (taskService.error()) {
+        <div class="error-state" role="alert">
+          <span>{{ taskService.error() }}</span>
+          <button class="secondary-button" type="button" (click)="taskService.loadTasks()">Try again</button>
+        </div>
+      } @else {
+        <app-task-stats [statistics]="taskService.statistics()" />
+
+        <section class="tasks-section" id="my-tasks" aria-label="Tasks">
+          <div class="board-toolbar">
+            <div class="status-tabs" role="tablist" aria-label="Filter tasks by status">
+              <button type="button" role="tab" [attr.aria-selected]="statusFilter() === 'all'" [class.selected]="statusFilter() === 'all'" (click)="setStatusFilter('all')">All</button>
+              @for (status of statuses; track status.value) {
+                <button type="button" role="tab" [attr.aria-selected]="statusFilter() === status.value" [class.selected]="statusFilter() === status.value" (click)="setStatusFilter(status.value)">{{ status.label }}</button>
+              }
+            </div>
+            <div class="board-actions">
+              <label class="select-filter"><select aria-label="Filter by priority" [value]="priorityFilter()" (change)="setPriorityFilter($any($event.target).value)"><option value="all">Priority</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select><span>⌄</span></label>
+              <label class="select-filter assignee-filter"><select aria-label="Filter by assignee" [value]="assigneeFilter()" (change)="setAssigneeFilter($any($event.target).value)"><option value="all">Assignee</option>@for (assignee of assignees(); track assignee.id) {<option [value]="assignee.id">{{ assignee.name }}</option>}</select><span>⌄</span></label>
+              <button class="new-task-button" type="button" (click)="openForm()"><span>+</span> New Task</button>
+            </div>
+          </div>
+
+          <app-task-board
+            [tasks]="filteredTasks()"
+            [statuses]="statuses"
+            (moveRequested)="changeTaskStatus($event.task, $event.direction)"
+            (deleteRequested)="removeTask($event)"
+          />
+        </section>
+      }
+    </div>
+  </main>
+</div>
+
+@if (formOpen()) {
+  <div class="modal-backdrop" (click)="closeForm()">
+    <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
+      <div class="modal-heading"><div><h2 id="modal-title">Create a task</h2><p>Add a new item to your workspace.</p></div><button type="button" class="modal-close" (click)="closeForm()" aria-label="Close dialog">×</button></div>
+      <form [formGroup]="form" (ngSubmit)="submitTask()">
+        <label class="form-field">Task title<input formControlName="title" placeholder="e.g. Prepare project brief" />@if (form.controls.title.touched && form.controls.title.invalid) {<small>Enter a title with at least 3 characters.</small>}</label>
+        <label class="form-field">Description<textarea formControlName="description" rows="3" placeholder="What needs to be done?"></textarea>@if (form.controls.description.touched && form.controls.description.invalid) {<small>Description is required.</small>}</label>
+        <div class="form-row">
+          <label class="form-field">Priority<select formControlName="priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+          <label class="form-field">Due date<input type="date" formControlName="dueDate" /></label>
+        </div>
+        <label class="form-field">Assignee<select formControlName="assigneeId">@for (assignee of assignees(); track assignee.id) {<option [value]="assignee.id">{{ assignee.name }}</option>}</select></label>
+        <div class="modal-actions"><button class="secondary-button" type="button" (click)="closeForm()">Cancel</button><button class="new-task-button" type="submit">Create task</button></div>
+      </form>
+    </section>
+  </div>
+}
