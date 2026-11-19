@@ -1,14 +1,17 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Task } from '../../models/task.model';
 
 @Component({
   selector: 'app-task-card',
+  imports: [CdkDragHandle],
   templateUrl: './task-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaskCardComponent {
   readonly task = input.required<Task>();
   readonly moveRequested = output<number>();
+  readonly editRequested = output<Task>();
   readonly deleteRequested = output<Task>();
 
   isOverdue(): boolean {

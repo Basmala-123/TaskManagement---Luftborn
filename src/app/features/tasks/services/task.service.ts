@@ -24,7 +24,16 @@ export class TaskService {
       .pipe(
         retry({ count: 2, delay: 500 }),
         tap((response) => {
-          this.taskState.set(response.tasks.tasks);
+          const date = new Date();
+          const today = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+            .toISOString()
+            .slice(0, 10);
+          this.taskState.set(
+            [...response.tasks.tasks].sort(
+              (left, right) =>
+                Number(this.isOverdue(right, today)) - Number(this.isOverdue(left, today))
+            )
+          );
           this.statisticsState.set(response.statistics.statistics);
         }),
         catchError((error: unknown) => {
@@ -44,23 +53,59 @@ export class TaskService {
     this.taskState.update((tasks) => [task, ...tasks]);
   }
 
-  updateStatus(taskId: string, status: TaskStatus): void {
+  updateTask(
+    taskId: string,
+    changes: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'dueDate' | 'assignee' | 'tags'>>
+  ): void {
     const updatedAt = new Date().toISOString();
     this.taskState.update((tasks) =>
       tasks.map((task) =>
         task.id === taskId
           ? {
               ...task,
-              status,
+              ...changes,
               updatedAt,
-              completedAt: status === 'done' ? updatedAt : undefined
+              ...(changes.status !== undefined && changes.status !== task.status
+                ? { completedAt: changes.status === 'done' ? updatedAt : undefined }
+                : {})
             }
           : task
       )
     );
   }
 
+  updateStatus(taskId: string, status: TaskStatus): void {
+    this.updateTask(taskId, { status });
+  }
+
+  moveTaskToStatus(taskId: string, status: TaskStatus, orderedTaskIds: string[]): void {
+    this.updateStatus(taskId, status);
+    this.reorderTasks(orderedTaskIds);
+  }
+
+  reorderTasks(orderedTaskIds: string[]): void {
+    const order = new Map(orderedTaskIds.map((taskId, index) => [taskId, index]));
+    this.taskState.update((tasks) => {
+      const positions = tasks
+        .map((task, index) => ({ task, index }))
+        .filter(({ task }) => order.has(task.id))
+        .sort((left, right) => left.index - right.index);
+      const reordered = positions
+        .map(({ task }) => task)
+        .sort((left, right) => order.get(left.id)! - order.get(right.id)!);
+      const next = [...tasks];
+      positions.forEach(({ index }, position) => {
+        next[index] = reordered[position];
+      });
+      return next;
+    });
+  }
+
   deleteTask(taskId: string): void {
     this.taskState.update((tasks) => tasks.filter((task) => task.id !== taskId));
+  }
+
+  private isOverdue(task: Task, today: string): boolean {
+    return task.status !== 'done' && task.dueDate < today;
   }
 }

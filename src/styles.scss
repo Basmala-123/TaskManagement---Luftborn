@@ -86,10 +86,20 @@ a { color: inherit; text-decoration: none; }
 .column-count { display: grid; min-width: 21px; height: 21px; place-items: center; margin-left: auto; border-radius: 50%; color: #626b77; background: #eceef1; font-size: 10px; }
 .column-heading button { margin-left: auto; border: 0; color: #818995; background: transparent; font-size: 13px; }
 .column-cards { display: grid; gap: 12px; }
-.task-card { min-width: 0; padding: 16px 17px 14px; border: 1px solid #e1e3e7; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px #20252d0b; }
+.task-card { min-width: 0; padding: 16px 17px 14px; border: 1px solid #e1e3e7; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px #20252d0b; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
 .task-card.overdue-card { border: 1px solid #f1c1c4; border-left: 4px solid #e72f36; background: #fff0f1; }
 .task-card:not(.overdue-card):hover { border-color: #1681ef; box-shadow: 0 3px 12px #1681ef16; }
 .card-title-row { display: flex; align-items: center; justify-content: space-between; }
+.card-controls { display: flex; align-items: center; gap: 2px; }
+.card-controls button { display: grid; width: 20px; height: 20px; place-items: center; padding: 0; border: 0; border-radius: 3px; color: #858d98; background: transparent; font-size: 13px; }
+.card-controls button:hover, .card-controls button:focus-visible { color: #147de0; background: #eaf4fd; }
+.drag-handle { cursor: grab; touch-action: none; }
+.drag-handle:active { cursor: grabbing; }
+app-task-card.cdk-drag { display: block; }
+app-task-card.cdk-drag-dragging .task-card { opacity: .35; }
+.cdk-drag-preview .task-card { border-color: #1681ef; box-shadow: 0 8px 24px #20252d2b; }
+.cdk-drag-placeholder .task-card { border-style: dashed; opacity: .3; }
+.column-cards.cdk-drop-list-dragging .task-card:not(.cdk-drag-placeholder) { transition: transform .16s ease; }
 .priority-label { display: inline-flex; align-items: center; padding: 4px 7px; border-radius: 4px; color: #cf4c4c; background: #fde9e8; font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .priority-label.medium { color: #dc8b18; background: #fff3df; }
 .priority-label.low { color: #4d9656; background: #edf7e9; }

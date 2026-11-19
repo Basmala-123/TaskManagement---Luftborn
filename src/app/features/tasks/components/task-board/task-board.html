@@ -1,15 +1,24 @@
-<div class="task-board">
+<div class="task-board" cdkDropListGroup>
   @for (status of statuses(); track status.value) {
     <section class="task-column" [class]="status.value">
       <div class="column-heading">
         <h2>{{ status.label }}</h2>
         <span class="column-count">{{ statusTasks(status.value).length }}</span>
       </div>
-      <div class="column-cards">
+      <div
+        class="column-cards"
+        cdkDropList
+        [cdkDropListData]="statusTasks(status.value)"
+        [attr.aria-label]="status.label + ' tasks'"
+        (cdkDropListDropped)="onTaskDrop($event, status.value)"
+      >
         @for (task of statusTasks(status.value); track task.id) {
           <app-task-card
+            cdkDrag
+            [cdkDragData]="task"
             [task]="task"
             (moveRequested)="requestMove(task, $event)"
+            (editRequested)="editRequested.emit($event)"
             (deleteRequested)="deleteRequested.emit($event)"
           />
         } @empty {

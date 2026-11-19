@@ -23,6 +23,7 @@ export class TaskManagerPage implements OnInit {
   readonly priorityFilter = signal<PriorityFilter>('all');
   readonly assigneeFilter = signal('all');
   readonly formOpen = signal(false);
+  readonly editingTaskId = signal<string | null>(null);
   readonly notice = signal('');
   readonly statuses: TaskStatusOption[] = [
     { value: 'todo', label: 'To Do' },
@@ -59,6 +60,7 @@ export class TaskManagerPage implements OnInit {
     title: ['', [Validators.required, Validators.minLength(3)]],
     description: ['', Validators.required],
     priority: ['medium' as TaskPriority, Validators.required],
+    status: ['todo' as TaskStatus, Validators.required],
     dueDate: ['', Validators.required],
     assigneeId: ['', Validators.required]
   });
@@ -83,20 +85,23 @@ export class TaskManagerPage implements OnInit {
     this.assigneeFilter.set(value);
   }
 
-  openForm(): void {
+  openForm(task?: Task): void {
     const firstAssignee = this.assignees()[0]?.id ?? '';
+    this.editingTaskId.set(task?.id ?? null);
     this.form.reset({
-      title: '',
-      description: '',
-      priority: 'medium',
-      dueDate: this.dateAfterDays(7),
-      assigneeId: firstAssignee
+      title: task?.title ?? '',
+      description: task?.description ?? '',
+      priority: task?.priority ?? 'medium',
+      status: task?.status ?? 'todo',
+      dueDate: task?.dueDate ?? this.dateAfterDays(7),
+      assigneeId: task?.assignee.id ?? firstAssignee
     });
     this.formOpen.set(true);
   }
 
   closeForm(): void {
     this.formOpen.set(false);
+    this.editingTaskId.set(null);
   }
 
   submitTask(): void {
@@ -112,12 +117,27 @@ export class TaskManagerPage implements OnInit {
       return;
     }
 
+    const editingTaskId = this.editingTaskId();
+    if (editingTaskId) {
+      this.taskService.updateTask(editingTaskId, {
+        title: value.title.trim(),
+        description: value.description.trim(),
+        priority: value.priority,
+        status: value.status,
+        dueDate: value.dueDate,
+        assignee
+      });
+      this.closeForm();
+      this.notice.set('Task updated successfully.');
+      return;
+    }
+
     const now = new Date().toISOString();
     const task: Task = {
       id: `task-${Date.now()}`,
       title: value.title.trim(),
       description: value.description.trim(),
-      status: 'todo',
+      status: value.status,
       priority: value.priority,
       dueDate: value.dueDate,
       assignee,
@@ -136,6 +156,14 @@ export class TaskManagerPage implements OnInit {
     if (nextStatus) {
       this.taskService.updateStatus(task.id, nextStatus.value);
     }
+  }
+
+  moveTaskToStatus(event: {
+    taskId: string;
+    status: TaskStatus;
+    orderedTaskIds: string[];
+  }): void {
+    this.taskService.moveTaskToStatus(event.taskId, event.status, event.orderedTaskIds);
   }
 
   removeTask(task: Task): void {

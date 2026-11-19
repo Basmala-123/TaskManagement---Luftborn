@@ -83,6 +83,34 @@ describe('TaskService', () => {
     expect(service.tasks()).toEqual([]);
   });
 
+  it('updates task details and clears completion when reopening a task', () => {
+    const completedTask: Task = {
+      ...task,
+      status: 'done',
+      completedAt: '2026-11-17T10:00:00.000Z'
+    };
+    service.createTask(completedTask);
+
+    service.updateTask(task.id, { title: 'Edited title' });
+    expect(service.tasks()[0].title).toBe('Edited title');
+    expect(service.tasks()[0].completedAt).toBe(completedTask.completedAt);
+
+    service.updateStatus(task.id, 'todo');
+    expect(service.tasks()[0].completedAt).toBeUndefined();
+  });
+
+  it('moves a task into a column and applies the drop order', () => {
+    const targetTask: Task = { ...task, id: 'task-2', status: 'in_progress' };
+    const movingTask: Task = { ...task, id: 'task-1' };
+    service.createTask(movingTask);
+    service.createTask(targetTask);
+
+    service.moveTaskToStatus(movingTask.id, 'in_progress', [movingTask.id, targetTask.id]);
+
+    expect(service.tasks().map(({ id }) => id)).toEqual([movingTask.id, targetTask.id]);
+    expect(service.tasks()[0].status).toBe('in_progress');
+  });
+
   it('reports an error after retrying failed data requests', async () => {
     service.loadTasks();
 

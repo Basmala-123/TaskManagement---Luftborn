@@ -1,12 +1,27 @@
 <article class="task-card" [class.overdue-card]="isOverdue()">
   <div class="card-title-row">
     <span class="priority-label" [class]="task().priority">{{ task().priority }}</span>
-    <button
-      type="button"
-      class="card-menu"
-      [attr.aria-label]="'Delete ' + task().title"
-      (click)="requestDelete()"
-    >···</button>
+    <div class="card-controls">
+      <button
+        type="button"
+        class="drag-handle"
+        cdkDragHandle
+        [attr.aria-label]="'Drag ' + task().title"
+        title="Drag to reorder or change status"
+      >⠿</button>
+      <button
+        type="button"
+        class="edit-task-button"
+        [attr.aria-label]="'Edit ' + task().title"
+        (click)="editRequested.emit(task())"
+      >✎</button>
+      <button
+        type="button"
+        class="card-menu"
+        [attr.aria-label]="'Delete ' + task().title"
+        (click)="requestDelete()"
+      >···</button>
+    </div>
   </div>
   <h3>{{ task().title }}</h3>
   <p class="task-description">{{ task().description }}</p>

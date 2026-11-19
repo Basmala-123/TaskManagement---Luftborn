@@ -59,7 +59,10 @@
             [tasks]="filteredTasks()"
             [statuses]="statuses"
             (moveRequested)="changeTaskStatus($event.task, $event.direction)"
+            (editRequested)="openForm($event)"
             (deleteRequested)="removeTask($event)"
+            (reorderRequested)="taskService.reorderTasks($event)"
+            (taskDropRequested)="moveTaskToStatus($event)"
           />
         </section>
       }
@@ -70,16 +73,17 @@
 @if (formOpen()) {
   <div class="modal-backdrop" (click)="closeForm()">
     <section class="task-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
-      <div class="modal-heading"><div><h2 id="modal-title">Create a task</h2><p>Add a new item to your workspace.</p></div><button type="button" class="modal-close" (click)="closeForm()" aria-label="Close dialog">×</button></div>
+      <div class="modal-heading"><div><h2 id="modal-title">{{ editingTaskId() ? 'Edit task' : 'Create a task' }}</h2><p>{{ editingTaskId() ? 'Update the task details.' : 'Add a new item to your workspace.' }}</p></div><button type="button" class="modal-close" (click)="closeForm()" aria-label="Close dialog">×</button></div>
       <form [formGroup]="form" (ngSubmit)="submitTask()">
         <label class="form-field">Task title<input formControlName="title" placeholder="e.g. Prepare project brief" />@if (form.controls.title.touched && form.controls.title.invalid) {<small>Enter a title with at least 3 characters.</small>}</label>
         <label class="form-field">Description<textarea formControlName="description" rows="3" placeholder="What needs to be done?"></textarea>@if (form.controls.description.touched && form.controls.description.invalid) {<small>Description is required.</small>}</label>
         <div class="form-row">
           <label class="form-field">Priority<select formControlName="priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
-          <label class="form-field">Due date<input type="date" formControlName="dueDate" /></label>
+          <label class="form-field">Status<select formControlName="status">@for (status of statuses; track status.value) {<option [value]="status.value">{{ status.label }}</option>}</select></label>
         </div>
+        <label class="form-field">Due date<input type="date" formControlName="dueDate" /></label>
         <label class="form-field">Assignee<select formControlName="assigneeId">@for (assignee of assignees(); track assignee.id) {<option [value]="assignee.id">{{ assignee.name }}</option>}</select></label>
-        <div class="modal-actions"><button class="secondary-button" type="button" (click)="closeForm()">Cancel</button><button class="new-task-button" type="submit">Create task</button></div>
+        <div class="modal-actions"><button class="secondary-button" type="button" (click)="closeForm()">Cancel</button><button class="new-task-button" type="submit">{{ editingTaskId() ? 'Save changes' : 'Create task' }}</button></div>
       </form>
     </section>
   </div>
