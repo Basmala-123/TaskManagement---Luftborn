@@ -24,16 +24,7 @@ export class TaskService {
       .pipe(
         retry({ count: 2, delay: 500 }),
         tap((response) => {
-          const date = new Date();
-          const today = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-            .toISOString()
-            .slice(0, 10);
-          this.taskState.set(
-            [...response.tasks.tasks].sort(
-              (left, right) =>
-                Number(this.isOverdue(right, today)) - Number(this.isOverdue(left, today))
-            )
-          );
+          this.taskState.set(this.sortOverdueFirst(response.tasks.tasks));
           this.statisticsState.set(response.statistics.statistics);
         }),
         catchError((error: unknown) => {
@@ -55,11 +46,18 @@ export class TaskService {
 
   updateTask(
     taskId: string,
-    changes: Partial<Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'dueDate' | 'assignee' | 'tags'>>
+    changes: Partial<
+      Pick<Task, 'title' | 'description' | 'status' | 'priority' | 'dueDate' | 'assignee' | 'tags'>
+    >
   ): void {
     const updatedAt = new Date().toISOString();
-    this.taskState.update((tasks) =>
-      tasks.map((task) =>
+    this.taskState.update((tasks) => {
+      const currentTask = tasks.find((task) => task.id === taskId);
+      const overdueOrderChanged =
+        currentTask !== undefined &&
+        ((changes.status !== undefined && changes.status !== currentTask.status) ||
+          (changes.dueDate !== undefined && changes.dueDate !== currentTask.dueDate));
+      const updatedTasks = tasks.map((task) =>
         task.id === taskId
           ? {
               ...task,
@@ -68,10 +66,11 @@ export class TaskService {
               ...(changes.status !== undefined && changes.status !== task.status
                 ? { completedAt: changes.status === 'done' ? updatedAt : undefined }
                 : {})
-            }
+          }
           : task
-      )
-    );
+      );
+      return overdueOrderChanged ? this.sortOverdueFirst(updatedTasks) : updatedTasks;
+    });
   }
 
   updateStatus(taskId: string, status: TaskStatus): void {
@@ -107,5 +106,16 @@ export class TaskService {
 
   private isOverdue(task: Task, today: string): boolean {
     return task.status !== 'done' && task.dueDate < today;
+  }
+
+  private sortOverdueFirst(tasks: Task[]): Task[] {
+    const date = new Date();
+    const today = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
+      .toISOString()
+      .slice(0, 10);
+    return [...tasks].sort(
+      (left, right) =>
+        Number(this.isOverdue(right, today)) - Number(this.isOverdue(left, today))
+    );
   }
 }

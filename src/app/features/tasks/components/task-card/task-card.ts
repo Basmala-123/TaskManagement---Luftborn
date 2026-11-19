@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Task } from '../../models/task.model';
 
 @Component({
   selector: 'app-task-card',
-  imports: [CdkDragHandle],
   templateUrl: './task-card.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

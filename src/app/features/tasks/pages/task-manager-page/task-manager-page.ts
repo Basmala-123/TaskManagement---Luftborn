@@ -164,6 +164,8 @@ export class TaskManagerPage implements OnInit {
     orderedTaskIds: string[];
   }): void {
     this.taskService.moveTaskToStatus(event.taskId, event.status, event.orderedTaskIds);
+    const statusLabel = this.statuses.find((status) => status.value === event.status)?.label;
+    this.notice.set(`Task moved to ${statusLabel ?? event.status}.`);
   }
 
   removeTask(task: Task): void {

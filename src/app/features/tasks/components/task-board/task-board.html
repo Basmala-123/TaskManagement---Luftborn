@@ -20,7 +20,15 @@
             (moveRequested)="requestMove(task, $event)"
             (editRequested)="editRequested.emit($event)"
             (deleteRequested)="deleteRequested.emit($event)"
-          />
+          >
+            <span
+              task-drag-handle
+              cdkDragHandle
+              class="drag-handle"
+              [title]="'Drag ' + task.title + ' to reorder or change status'"
+              aria-hidden="true"
+            >⠿</span>
+          </app-task-card>
         } @empty {
           <div class="empty-column">No tasks here</div>
         }

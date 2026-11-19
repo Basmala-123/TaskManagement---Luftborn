@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import {
   CdkDrag,
+  CdkDragHandle,
   CdkDragDrop,
   CdkDropList,
   CdkDropListGroup,
@@ -11,7 +12,7 @@ import { TaskCardComponent } from '../task-card/task-card';
 
 @Component({
   selector: 'app-task-board',
-  imports: [CdkDrag, CdkDropList, CdkDropListGroup, TaskCardComponent],
+  imports: [CdkDrag, CdkDragHandle, CdkDropList, CdkDropListGroup, TaskCardComponent],
   templateUrl: './task-board.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
